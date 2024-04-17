@@ -4,21 +4,25 @@ import 'timing_section.dart';
 import 'analytics_section.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
-      home: MainPage(),
+      home: const MainPage(),
     );
   }
 }
 
 class MainPage extends StatefulWidget {
+  const MainPage({super.key});
+
   @override
   _MainPageState createState() => _MainPageState();
 }
@@ -27,7 +31,7 @@ class _MainPageState extends State<MainPage> {
   int _currentIndex = 1; // Set initial index to center (Home)
   final List<Widget> _sections = [
     TimingSection(),
-    HomeSection(),
+    const HomeSection(),
     AnalyticsSection(),
   ];
 
@@ -62,7 +66,7 @@ class _MainPageState extends State<MainPage> {
             _currentIndex = index;
           });
         },
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.access_time),
             label: 'Timing',
