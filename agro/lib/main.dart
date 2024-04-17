@@ -8,7 +8,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  const MainPage({Key? key});
 
   @override
   _MainPageState createState() => _MainPageState();
@@ -41,14 +41,14 @@ class _MainPageState extends State<MainPage> {
       backgroundColor: Colors.grey[900],
       body: GestureDetector(
         onHorizontalDragEnd: (details) {
-          if (details.velocity.pixelsPerSecond.dx > 0) {
+          if (details.primaryVelocity! > 0) {
             // swiped right
             if (_currentIndex > 0) {
               setState(() {
                 _currentIndex--;
               });
             }
-          } else {
+          } else if (details.primaryVelocity! < 0) {
             // swiped left
             if (_currentIndex < _sections.length - 1) {
               setState(() {

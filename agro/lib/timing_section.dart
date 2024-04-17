@@ -22,10 +22,6 @@ class _TimingSectionState extends State<TimingSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'Set Watering Times',
-            style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-          ),
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
@@ -40,6 +36,7 @@ class _TimingSectionState extends State<TimingSection> {
           ),
           SizedBox(height: 10),
           ListView.builder(
+            physics: CustomScrollPhysics(), // Set custom ScrollPhysics
             shrinkWrap: true,
             itemCount: wateringTimes.length,
             itemBuilder: (context, index) {
@@ -86,7 +83,6 @@ class TimePickerDialog extends StatefulWidget {
 class _TimePickerDialogState extends State<TimePickerDialog> {
   int selectedHour = 12;
   int selectedMinute = 0;
-  bool isAm = true;
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +92,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
       child: Container(
         padding: EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.grey,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -104,7 +100,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
           children: [
             Text(
               'Set Watering Time',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
             ),
             SizedBox(height: 20),
             Row(
@@ -112,8 +108,8 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
               children: [
                 RotatableNumber(
                   value: selectedHour,
-                  minValue: 1,
-                  maxValue: 12,
+                  minValue: 0,
+                  maxValue: 23,
                   onChanged: (value) {
                     setState(() {
                       selectedHour = value;
@@ -131,29 +127,12 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
                     });
                   },
                 ),
-                SizedBox(width: 20),
-                ToggleButtons(
-                  isSelected: [isAm, !isAm],
-                  onPressed: (index) {
-                    setState(() {
-                      isAm = index == 0;
-                    });
-                  },
-                  children: [
-                    Text('AM'),
-                    Text('PM'),
-                  ],
-                  color: Colors.grey[400],
-                  selectedColor: Colors.grey[900],
-                  fillColor: Colors.grey[800],
-                  borderRadius: BorderRadius.circular(10),
-                ),
               ],
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                String time = '${selectedHour.toString().padLeft(2, '0')}:${selectedMinute.toString().padLeft(2, '0')} ${isAm ? 'AM' : 'PM'}';
+                String time = '${selectedHour.toString().padLeft(2, '0')}:${selectedMinute.toString().padLeft(2, '0')}';
                 Navigator.of(context).pop(time);
               },
               child: Text('Save'),
@@ -209,4 +188,43 @@ class _RotatableNumberState extends State<RotatableNumber> {
       ),
     );
   }
+}
+
+class CustomScrollPhysics extends ScrollPhysics {
+  const CustomScrollPhysics({ScrollPhysics? parent}) : super(parent: parent);
+
+  @override
+  ScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return CustomScrollPhysics(parent: buildParent(ancestor));
+  }
+
+  @override
+  Simulation createBallisticSimulation(
+      ScrollMetrics position, double velocity) {
+    return ScrollSpringSimulation(
+      SpringDescription(
+        mass: 100000000,
+        stiffness: 1.0,
+        damping: 100.0,
+      ),
+      position.pixels,
+      position.maxScrollExtent,
+      velocity,
+      tolerance: Tolerance(
+        velocity: 0,
+        distance: 10000000000000,
+      ),
+    );
+  }
+}
+
+void main() {
+  runApp(MaterialApp(
+    home: Scaffold(
+      appBar: AppBar(
+        title: Text('Timing Section'),
+      ),
+      body: TimingSection(),
+    ),
+  ));
 }
