@@ -96,7 +96,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
       child: Container(
         padding: EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: Colors.grey[900],
+          color: Colors.white,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -104,7 +104,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
           children: [
             Text(
               'Set Watering Time',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
             Row(
@@ -140,16 +140,13 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
                     });
                   },
                   children: [
-                    Text('AM', style: TextStyle(color: Colors.white)),
-                    Text('PM', style: TextStyle(color: Colors.white)),
+                    Text('AM'),
+                    Text('PM'),
                   ],
-                  color: Colors.grey,
-                  selectedColor: Colors.white,
-                  fillColor: Colors.transparent,
+                  color: Colors.grey[400],
+                  selectedColor: Colors.grey[900],
+                  fillColor: Colors.grey[800],
                   borderRadius: BorderRadius.circular(10),
-                  borderWidth: 2,
-                  borderColor: Colors.grey,
-                  selectedBorderColor: Colors.grey,
                 ),
               ],
             ),
@@ -187,8 +184,6 @@ class RotatableNumber extends StatefulWidget {
 
 class _RotatableNumberState extends State<RotatableNumber> {
   late int _value;
-  double _startAngle = 0.0;
-  double _currentAngle = 0.0;
 
   @override
   void initState() {
@@ -199,25 +194,18 @@ class _RotatableNumberState extends State<RotatableNumber> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onPanStart: (details) {
-        _startAngle = _currentAngle;
-      },
-      onPanUpdate: (details) {
-        setState(() {
-          _currentAngle = _startAngle + details.delta.dx * 0.01;
-          int newValue = ((_currentAngle / (2 * 3.14)) * (widget.maxValue - widget.minValue)).toInt() + widget.minValue;
-          if (newValue >= widget.minValue && newValue <= widget.maxValue) {
+      onHorizontalDragUpdate: (details) {
+        int newValue = _value - details.primaryDelta!.sign.toInt();
+        if (newValue >= widget.minValue && newValue <= widget.maxValue) {
+          setState(() {
             _value = newValue;
-            widget.onChanged(newValue);
-          }
-        });
+          });
+          widget.onChanged(newValue);
+        }
       },
-      child: Transform.rotate(
-        angle: _currentAngle,
-        child: Text(
-          _value.toString().padLeft(2, '0'),
-          style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.grey),
-        ),
+      child: Text(
+        _value.toString().padLeft(2, '0'),
+        style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.grey[900]),
       ),
     );
   }
