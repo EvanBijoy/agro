@@ -36,7 +36,7 @@ class _TimingSectionState extends State<TimingSection> {
           ),
           SizedBox(height: 10),
           ListView.builder(
-            physics: CustomScrollPhysics(), // Set custom ScrollPhysics
+            physics: CustomScrollPhysics(),
             shrinkWrap: true,
             itemCount: wateringTimes.length,
             itemBuilder: (context, index) {
@@ -62,7 +62,7 @@ class _TimingSectionState extends State<TimingSection> {
   }
 
   Future<void> _showTimePickerDialog(BuildContext context) async {
-    String? selectedTime = await showDialog<String>(
+    Map<String, dynamic>? selectedTime = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (BuildContext context) {
         return TimePickerDialog();
@@ -70,7 +70,9 @@ class _TimingSectionState extends State<TimingSection> {
     );
 
     if (selectedTime != null) {
-      _addTime(selectedTime);
+      String time = selectedTime['time'];
+      int duration = selectedTime['duration'];
+      _addTime('$time ($duration minutes)');
     }
   }
 }
@@ -83,6 +85,7 @@ class TimePickerDialog extends StatefulWidget {
 class _TimePickerDialogState extends State<TimePickerDialog> {
   int selectedHour = 12;
   int selectedMinute = 0;
+  int selectedDuration = 10; // Default duration
 
   @override
   Widget build(BuildContext context) {
@@ -127,13 +130,27 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
                     });
                   },
                 ),
+                SizedBox(width: 20),
+                Flexible(
+                  child: TextFormField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Duration (minutes)',
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedDuration = int.tryParse(value) ?? 0;
+                      });
+                    },
+                  ),
+                ),
               ],
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 String time = '${selectedHour.toString().padLeft(2, '0')}:${selectedMinute.toString().padLeft(2, '0')}';
-                Navigator.of(context).pop(time);
+                Navigator.of(context).pop({'time': time, 'duration': selectedDuration});
               },
               child: Text('Save'),
             ),
@@ -182,9 +199,18 @@ class _RotatableNumberState extends State<RotatableNumber> {
           widget.onChanged(newValue);
         }
       },
-      child: Text(
-        _value.toString().padLeft(2, '0'),
-        style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.grey[900]),
+      child: Container(
+        width: 60,
+        height: 60,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.grey[800],
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Text(
+          _value.toString().padLeft(2, '0'),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
       ),
     );
   }
