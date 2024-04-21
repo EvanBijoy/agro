@@ -40,8 +40,7 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Moisture Level',
+                Text( getHeading(),
                   style: TextStyle(color: Colors.white, fontSize: 20.0),
                 ),
                 Expanded(
@@ -214,3 +213,16 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
   }
 }
 
+String getHeading()
+{
+  switch (which)
+  {
+    case 1:
+      return 'Temperature';
+    case 2:
+      return 'Moisture';
+    case 3:
+      return 'Humidity';
+  }
+  return 'Invalid';
+}

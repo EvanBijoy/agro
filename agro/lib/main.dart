@@ -10,6 +10,21 @@ import 'timing_section.dart';
 import 'analytics_section.dart';
 import 'line_chart.dart';
 
+// mqtt import stuff
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
+
+// mqtt variables
+String broker = "10.42.0.60";
+String username = "user1";
+String password = "password";
+
+String topicString = "/oneM2M/req/AE-TEST/in-cse/json";
+String motorTopic = "/motor";
+String motorStringStart = "{\n	\"m2m:rqp\": {\n		\"m2m:fr\": \"admin:admin\",\n		\"m2m:to\": \"/in-cse/in-name/AE-TEST/Node-1/motor\",\n		\"m2m:op\": 1,\n		\"m2m:pc\": {\n			\"m2m:cin\": {\n				\"con\": ";
+String motorStringEnd = "\n			}\n		},\n		\"m2m:ty\": 4\n	}\n}";
+
+
 late Future<List<Data>> dataList;
 late List<Data> moisPlot;
 late List<Data> moisMotorOnPlot;
@@ -32,6 +47,25 @@ Timer? timer;
 
 void main() {
   // code for mqtt
+  client = MqttServerClient.withPort(broker, '', 1883); // Replace with your broker's address
+  // client.connect('my_user'); // Replace with a unique client ID
+
+      final MqttConnectMessage connMess = MqttConnectMessage()
+        .withClientIdentifier('Mqtt_MyClientUniqueId')
+        .keepAliveFor(20) // Must agree with the keep alive set above or not set
+        // .withWillTopic('willtopic') // If you set this you must set a will message
+        // .withWillMessage('My Will message')
+        // .startClean() // Non persistent session for testing
+        .authenticateAs(username, password) // additional code when connecting to a broker w/ creds
+        .withWillQos(MqttQos.atLeastOnce);
+    print('EXAMPLE::Mosquitto client connecting....');
+    client.connectionMessage = connMess;
+
+    try {
+      client.connect(username, password);
+    } catch (e) {
+      print("ERROR: " + e.toString());
+    }
 
   // code for fetching data from om2m by http
 
@@ -110,7 +144,7 @@ class _MainPageState extends State<MainPage> {
 }
 
 Future<List<Data>> fetchData() async {
-  final response = await http.get(Uri.parse('http://192.168.179.106:8080/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2?rcn=4'), headers: {
+  final response = await http.get(Uri.parse('http://10.42.0.60:5089/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2?rcn=4'), headers: {
     'X-M2M-Origin': 'admin:admin',
     'Accept': 'application/json'
   });
@@ -162,7 +196,7 @@ Future<List<Data>> fetchData() async {
 }
 
 void fetchRealTimeData() async {
-  final response = await http.get(Uri.parse('http://192.168.179.106:8080/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2/la'), headers: {
+  final response = await http.get(Uri.parse('http://10.42.0.60:5089/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2/la'), headers: {
     'X-M2M-Origin': 'admin:admin',
     'Accept': 'application/json'
   });

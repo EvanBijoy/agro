@@ -1,7 +1,52 @@
 import 'package:flutter/material.dart';
 
+// mqtt import stuff 
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
+
 import 'data.dart';
 import 'main.dart';
+
+// mqtt stuff 
+String broker = "10.42.0.60";// change IP addr accordingly
+String username = "user1";
+String password = "password";
+
+String topicString = "/oneM2M/req/AE-TEST/in-cse/json";
+String motorTopic = "/motor";
+String motorStringStart = "{\n	\"m2m:rqp\": {\n		\"m2m:fr\": \"admin:admin\",\n		\"m2m:to\": \"/in-cse/in-name/AE-TEST/Node-1/motor\",\n		\"m2m:op\": 1,\n		\"m2m:pc\": {\n			\"m2m:cin\": {\n				\"con\": ";
+String motorStringEnd = "\n			}\n		},\n		\"m2m:ty\": 4\n	}\n}";
+
+var state = 0;
+
+var client;
+
+
+void publish()
+  {
+    if (state == 0)
+      {
+        state = 1;
+      }
+    else
+      {
+        state = 0;
+      }
+
+    String motorString = motorStringStart + state.toString() + motorStringEnd;
+
+    final builder1 = MqttClientPayloadBuilder();
+    builder1.addString(motorString);
+    print('EXAMPLE:: <<<< PUBLISH 1 >>>>');
+    client.publishMessage(topicString, MqttQos.atLeastOnce, builder1.payload!);
+
+    final builder2 = MqttClientPayloadBuilder();
+    builder2.addString(state.toString());
+    print('EXAMPLE:: <<<< PUBLISH 2 >>>>');
+    client.publishMessage(motorTopic, MqttQos.atLeastOnce, builder2.payload!);
+  }
+
+
 
 class HomeSection extends StatefulWidget {
   const HomeSection({Key? key}) : super(key: key);
@@ -21,7 +66,9 @@ class _HomeSectionState extends State<HomeSection> {
   void _toggleMotor() {
     setState(() {
       _isMotorOn = !_isMotorOn;
+      publish();
     });
+
   }
 
   @override
