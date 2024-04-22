@@ -15,7 +15,7 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 // mqtt variables
-String broker = "10.42.0.60";
+String broker = "192.168.12.1";
 String username = "user1";
 String password = "password";
 
@@ -144,7 +144,7 @@ class _MainPageState extends State<MainPage> {
 }
 
 Future<List<Data>> fetchData() async {
-  final response = await http.get(Uri.parse('http://10.42.0.60:5089/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2?rcn=4'), headers: {
+  final response = await http.get(Uri.parse('http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2?rcn=4'), headers: {
     'X-M2M-Origin': 'admin:admin',
     'Accept': 'application/json'
   });
@@ -157,7 +157,7 @@ Future<List<Data>> fetchData() async {
 
   if (response.statusCode == 200) {
     Iterable dataPoints = json["m2m:cnt"]["m2m:cin"];
-    List<Data> dataList = List<Data>.from(dataPoints.toList().asMap().entries.map((model)=> Data.fromJson(model.value, model.key)));
+    List<Data> dataList = List<Data>.from(List.from(dataPoints.toList().reversed.take(2000).toList().reversed).asMap().entries.map((model)=> Data.fromJson(model.value, model.key)));
 
     int x = 0;
 
@@ -171,10 +171,10 @@ Future<List<Data>> fetchData() async {
         if (x % 1 == 0)
           {
             moisPlot.add(data);
-            Data dummy = Data(index: data.index, mois: null);
+            Data dummy = Data(index: data.index, mois: null, humd: null, temp: null, motorstate: null, timestamp: data.timestamp);
             if (data.motorstate == 1)
               {
-                print(data.index);
+                // print(data.index);
                 moisMotorOnPlot.add(data);
                 moisMotorOffPlot.add(dummy);
               }
@@ -196,7 +196,7 @@ Future<List<Data>> fetchData() async {
 }
 
 void fetchRealTimeData() async {
-  final response = await http.get(Uri.parse('http://10.42.0.60:5089/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2/la'), headers: {
+  final response = await http.get(Uri.parse('http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2/la'), headers: {
     'X-M2M-Origin': 'admin:admin',
     'Accept': 'application/json'
   });
@@ -214,4 +214,6 @@ void fetchRealTimeData() async {
   } else {
     throw Exception('Failed to load album');
   }
+
+  fetchData();
 }
