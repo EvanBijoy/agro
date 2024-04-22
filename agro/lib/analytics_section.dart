@@ -45,20 +45,20 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
                 ),
                 Expanded(
                   child: SfCartesianChart(
-                      primaryXAxis: NumericAxis(minimum: 0, maximum: 2000),
+                      primaryXAxis: CategoryAxis(minimum: 0, maximum: max_instances.toDouble(), interval: 250),
                       primaryYAxis: NumericAxis(minimum: 0, maximum: y_max.toDouble(), interval: y_interval.toDouble()),
                       // tooltipBehavior: _tooltip,
-                      series: <CartesianSeries<Data, int>>[
-                        AreaSeries<Data, int>(
+                      series: <CartesianSeries<Data, String>>[
+                        AreaSeries<Data, String>(
                             dataSource: moisMotorOnPlot,
-                            xValueMapper: (Data data, _) => data.index,
+                            xValueMapper: (Data data, _) => data.timestamp,
                             yValueMapper: (Data data, _) => data.mois,
                             name: 'Gold',
                             color: Color.fromARGB(180, 255, 255, 0),
                         ),
-                      AreaSeries<Data, int>(
+                      AreaSeries<Data, String>(
                           dataSource: moisMotorOffPlot,
-                          xValueMapper: (Data data, _) => data.index,
+                          xValueMapper: (Data data, _) => data.timestamp,
                           yValueMapper: (Data data, _) {
                             switch (which) {
                               case 1:

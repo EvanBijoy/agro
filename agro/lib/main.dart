@@ -39,11 +39,14 @@ int y_max = 5000;
 int y_interval = 1000;
 
 int which = 1;
+String water_level = "";
 
 late Data currData;
 var currDataStream = ValueNotifier<Data>(const Data(index: 0, timestamp: "", motorstate: 0, mois: 0, temp: 0.0, humd: 0.0));
 
 Timer? timer;
+
+int max_instances = 2000;
 
 void main() {
   // code for mqtt
@@ -72,7 +75,7 @@ void main() {
   dataList = fetchData();
 
   fetchRealTimeData();
-  timer = Timer.periodic(const Duration(seconds: 15), (Timer t) => fetchRealTimeData());
+  timer = Timer.periodic(const Duration(seconds: 5), (Timer t) => fetchRealTimeData());
 
   runApp(const MyApp());
 }
@@ -149,15 +152,15 @@ Future<List<Data>> fetchData() async {
     'Accept': 'application/json'
   });
   
-  print(response);
-  print("hello");
-  print(jsonDecode(response.body));
+  // print(response);
+  // print("hello");
+  // print(jsonDecode(response.body));
 
   var json = jsonDecode(response.body);
 
   if (response.statusCode == 200) {
     Iterable dataPoints = json["m2m:cnt"]["m2m:cin"];
-    List<Data> dataList = List<Data>.from(List.from(dataPoints.toList().reversed.take(2000).toList().reversed).asMap().entries.map((model)=> Data.fromJson(model.value, model.key)));
+    List<Data> dataList = List<Data>.from(List.from(dataPoints.toList().reversed.take(max_instances).toList().reversed).asMap().entries.map((model)=> Data.fromJson(model.value, model.key)));
 
     int x = 0;
 
@@ -195,6 +198,35 @@ Future<List<Data>> fetchData() async {
   }
 }
 
+void fetchWaterLevel() async {
+  final response = await http.get(Uri.parse('http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/WaterLevel/la'), headers: {
+    'X-M2M-Origin': 'admin:admin',
+    'Accept': 'application/json'
+  });
+
+  print(response);
+  print("hello");
+  print(jsonDecode(response.body));
+
+
+  if (response.statusCode == 200) {
+    String tmp = jsonDecode(response.body)["m2m:cin"]["con"].toString().trim();
+
+    if (tmp == "0")
+      {
+        water_level = "LOW";
+      }
+    else
+      {
+        water_level = "HIGH";
+      }
+
+    print(water_level);
+  } else {
+    throw Exception('Failed to load album');
+  }
+}
+
 void fetchRealTimeData() async {
   final response = await http.get(Uri.parse('http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2/la'), headers: {
     'X-M2M-Origin': 'admin:admin',
@@ -215,5 +247,6 @@ void fetchRealTimeData() async {
     throw Exception('Failed to load album');
   }
 
+  fetchWaterLevel();
   fetchData();
 }

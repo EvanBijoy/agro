@@ -106,7 +106,7 @@ class _HomeSectionState extends State<HomeSection> {
                           _buildTile('Relative Humidity', value.humd.toString(),
                               Colors.orange[900]!, 3),
                           _buildTile(
-                              'Water Level', 'High', Colors.indigo[900]!, 1),
+                              'Water Level', water_level, Colors.indigo[900]!, 1),
                         ],
                       ),
                     ),
