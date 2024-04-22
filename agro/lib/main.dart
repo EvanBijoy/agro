@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'data.dart';
 import 'home_section.dart';
-import 'timing_section.dart';
+import 'input_section.dart';
 import 'analytics_section.dart';
 import 'line_chart.dart';
 
@@ -100,7 +100,7 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 1; // Set initial index to center (Home)
   final List<Widget> _sections = [
-    TimingSection(),
+    InputSection(),
     const HomeSection(),
     AnalyticsSection(),
   ];
@@ -120,8 +120,8 @@ class _MainPageState extends State<MainPage> {
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.access_time),
-            label: 'Timing',
+            icon: Icon(Icons.anchor),
+            label: 'Values',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
