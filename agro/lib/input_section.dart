@@ -1,4 +1,11 @@
+import 'dart:convert';
+
+import 'package:agro/main.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:mqtt_client/mqtt_client.dart';
+
+import 'home_section.dart';
 
 class InputSection extends StatefulWidget {
   @override
@@ -21,30 +28,30 @@ class _InputSectionState extends State<InputSection> {
           SizedBox(height: 20),
           IntegerInputField(
             label: 'Soil Moisture',
-            value: soilMoisture,
+            value: mois_thres,
             onChanged: (value) {
               setState(() {
-                soilMoisture = value;
+                mois_thres = value;
               });
             },
           ),
           SizedBox(height: 20),
           IntegerInputField(
             label: 'Temperature',
-            value: temperature,
+            value: temp_thres.toInt(),
             onChanged: (value) {
               setState(() {
-                temperature = value;
+                temp_thres = value.toDouble();
               });
             },
           ),
           SizedBox(height: 20),
           IntegerInputField(
             label: 'Relative Humidity',
-            value: relativeHumidity,
+            value: humd_thres.toInt(),
             onChanged: (value) {
               setState(() {
-                relativeHumidity = value;
+                humd_thres = value.toDouble();
               });
             },
           ),
@@ -54,6 +61,8 @@ class _InputSectionState extends State<InputSection> {
               // Apply the values if they are valid
               if (_areValuesValid()) {
                 // Perform action with the validated values, e.g., save to database
+                sendThreshold();
+                publishThreshold();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Values set successfully')),
                 );
@@ -146,6 +155,29 @@ class IntegerInputField extends StatelessWidget {
       ],
     );
   }
+}
+
+void sendThreshold() async {
+  final response = await http.post(
+      Uri.parse(
+          'http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/threshold/'),
+      headers: {'X-M2M-Origin': 'admin:admin', 'Content-Type': 'application/json;ty=4'},
+  body: "{\n    \"m2m:cin\": {\n        \"con\": \"[$mois_thres, $temp_thres, $humd_thres]\"\n    } \n }");
+  print("{\n    \"m2m:cin\": {\n        \"con\": \"[$mois_thres, $temp_thres, $humd_thres]\"\n    } \n }");
+  print(response);
+  print("hellodear");
+  print(response.body);
+}
+
+
+void publishThreshold()
+{
+  String topicString = "/threshold";
+  String thresholdString = mois_thres.toString() + " " + temp_thres.toString() + " " + humd_thres.toString();
+  final builder1 = MqttClientPayloadBuilder();
+  builder1.addString(thresholdString);
+  print('EXAMPLE:: <<<< PUBLISH 3 >>>>');
+  client.publishMessage(topicString, MqttQos.atLeastOnce, builder1.payload!);
 }
 
 void main() {

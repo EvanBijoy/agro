@@ -21,9 +21,9 @@ String password = "password";
 
 String topicString = "/oneM2M/req/AE-TEST/in-cse/json";
 String motorTopic = "/motor";
-String motorStringStart = "{\n	\"m2m:rqp\": {\n		\"m2m:fr\": \"admin:admin\",\n		\"m2m:to\": \"/in-cse/in-name/AE-TEST/Node-1/motor\",\n		\"m2m:op\": 1,\n		\"m2m:pc\": {\n			\"m2m:cin\": {\n				\"con\": ";
+String motorStringStart =
+    "{\n	\"m2m:rqp\": {\n		\"m2m:fr\": \"admin:admin\",\n		\"m2m:to\": \"/in-cse/in-name/AE-TEST/Node-1/motor\",\n		\"m2m:op\": 1,\n		\"m2m:pc\": {\n			\"m2m:cin\": {\n				\"con\": ";
 String motorStringEnd = "\n			}\n		},\n		\"m2m:ty\": 4\n	}\n}";
-
 
 late Future<List<Data>> dataList;
 late List<Data> moisPlot;
@@ -41,8 +41,13 @@ int y_interval = 1000;
 int which = 1;
 String water_level = "";
 
+int mois_thres = 3000;
+double temp_thres = 30.0;
+double humd_thres = 50.0;
+
 late Data currData;
-var currDataStream = ValueNotifier<Data>(const Data(index: 0, timestamp: "", motorstate: 0, mois: 0, temp: 0.0, humd: 0.0));
+var currDataStream = ValueNotifier<Data>(const Data(
+    index: 0, timestamp: "", motorstate: 0, mois: 0, temp: 0.0, humd: 0.0));
 
 Timer? timer;
 
@@ -50,32 +55,36 @@ int max_instances = 2000;
 
 void main() {
   // code for mqtt
-  client = MqttServerClient.withPort(broker, '', 1883); // Replace with your broker's address
+  client = MqttServerClient.withPort(
+      broker, '', 1883); // Replace with your broker's address
   // client.connect('my_user'); // Replace with a unique client ID
 
-      final MqttConnectMessage connMess = MqttConnectMessage()
-        .withClientIdentifier('Mqtt_MyClientUniqueId')
-        .keepAliveFor(20) // Must agree with the keep alive set above or not set
-        // .withWillTopic('willtopic') // If you set this you must set a will message
-        // .withWillMessage('My Will message')
-        // .startClean() // Non persistent session for testing
-        .authenticateAs(username, password) // additional code when connecting to a broker w/ creds
-        .withWillQos(MqttQos.atLeastOnce);
-    print('EXAMPLE::Mosquitto client connecting....');
-    client.connectionMessage = connMess;
+  final MqttConnectMessage connMess = MqttConnectMessage()
+      .withClientIdentifier('Mqtt_MyClientUniqueId')
+      .keepAliveFor(20) // Must agree with the keep alive set above or not set
+      // .withWillTopic('willtopic') // If you set this you must set a will message
+      // .withWillMessage('My Will message')
+      // .startClean() // Non persistent session for testing
+      .authenticateAs(username,
+          password) // additional code when connecting to a broker w/ creds
+      .withWillQos(MqttQos.atLeastOnce);
+  print('EXAMPLE::Mosquitto client connecting....');
+  client.connectionMessage = connMess;
 
-    try {
-      client.connect(username, password);
-    } catch (e) {
-      print("ERROR: " + e.toString());
-    }
+  try {
+    client.connect(username, password);
+  } catch (e) {
+    print("ERROR: " + e.toString());
+  }
 
   // code for fetching data from om2m by http
 
   dataList = fetchData();
+  fetchThreshold();
 
   fetchRealTimeData();
-  timer = Timer.periodic(const Duration(seconds: 5), (Timer t) => fetchRealTimeData());
+  timer = Timer.periodic(
+      const Duration(seconds: 5), (Timer t) => fetchRealTimeData());
 
   runApp(const MyApp());
 }
@@ -147,11 +156,11 @@ class _MainPageState extends State<MainPage> {
 }
 
 Future<List<Data>> fetchData() async {
-  final response = await http.get(Uri.parse('http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2?rcn=4'), headers: {
-    'X-M2M-Origin': 'admin:admin',
-    'Accept': 'application/json'
-  });
-  
+  final response = await http.get(
+      Uri.parse(
+          'http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2?rcn=4'),
+      headers: {'X-M2M-Origin': 'admin:admin', 'Accept': 'application/json'});
+
   // print(response);
   // print("hello");
   // print(jsonDecode(response.body));
@@ -160,7 +169,11 @@ Future<List<Data>> fetchData() async {
 
   if (response.statusCode == 200) {
     Iterable dataPoints = json["m2m:cnt"]["m2m:cin"];
-    List<Data> dataList = List<Data>.from(List.from(dataPoints.toList().reversed.take(max_instances).toList().reversed).asMap().entries.map((model)=> Data.fromJson(model.value, model.key)));
+    List<Data> dataList = List<Data>.from(List.from(
+            dataPoints.toList().reversed.take(max_instances).toList().reversed)
+        .asMap()
+        .entries
+        .map((model) => Data.fromJson(model.value, model.key)));
 
     int x = 0;
 
@@ -168,29 +181,28 @@ Future<List<Data>> fetchData() async {
     moisMotorOnPlot = [];
     moisMotorOffPlot = [];
 
-    for (Data data in dataList)
-      {
-        // FlSpot tmp = FlSpot(x.toDouble(), data.mois.toDouble());
-        if (x % 1 == 0)
-          {
-            moisPlot.add(data);
-            Data dummy = Data(index: data.index, mois: null, humd: null, temp: null, motorstate: null, timestamp: data.timestamp);
-            if (data.motorstate == 1)
-              {
-                // print(data.index);
-                moisMotorOnPlot.add(data);
-                moisMotorOffPlot.add(dummy);
-              }
-            else
-              {
-                moisMotorOffPlot.add(data);
-                moisMotorOnPlot.add(dummy);
-              }
-          }
-        ++x;
+    for (Data data in dataList) {
+      // FlSpot tmp = FlSpot(x.toDouble(), data.mois.toDouble());
+      if (x % 1 == 0) {
+        moisPlot.add(data);
+        Data dummy = Data(
+            index: data.index,
+            mois: null,
+            humd: null,
+            temp: null,
+            motorstate: null,
+            timestamp: data.timestamp);
+        if (data.motorstate == 1) {
+          // print(data.index);
+          moisMotorOnPlot.add(data);
+          moisMotorOffPlot.add(dummy);
+        } else {
+          moisMotorOffPlot.add(data);
+          moisMotorOnPlot.add(dummy);
+        }
       }
-
-
+      ++x;
+    }
 
     return dataList;
   } else {
@@ -198,28 +210,46 @@ Future<List<Data>> fetchData() async {
   }
 }
 
-void fetchWaterLevel() async {
-  final response = await http.get(Uri.parse('http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/WaterLevel/la'), headers: {
-    'X-M2M-Origin': 'admin:admin',
-    'Accept': 'application/json'
-  });
+void fetchThreshold() async {
+  final response = await http.get(
+      Uri.parse(
+          'http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/threshold/la'),
+      headers: {'X-M2M-Origin': 'admin:admin', 'Accept': 'application/json'});
 
   print(response);
   print("hello");
   print(jsonDecode(response.body));
 
+  List<String> dataArray = jsonDecode(response.body)["m2m:cin"]["con"].toString()
+      .replaceAll('[', '') // Remove leading [
+      .replaceAll(']', '') // Remove trailing ]
+      .split(',') // Split by comma
+      .map((String element) => element.trim()) // Remove leading and trailing whitespace
+      .toList();
+
+  mois_thres = int.parse(dataArray[0]);
+  temp_thres = double.parse(dataArray[1]);
+  humd_thres = double.parse(dataArray[2]);
+}
+
+void fetchWaterLevel() async {
+  final response = await http.get(
+      Uri.parse(
+          'http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/WaterLevel/la'),
+      headers: {'X-M2M-Origin': 'admin:admin', 'Accept': 'application/json'});
+
+  print(response);
+  print("hello");
+  print(jsonDecode(response.body));
 
   if (response.statusCode == 200) {
     String tmp = jsonDecode(response.body)["m2m:cin"]["con"].toString().trim();
 
-    if (tmp == "0")
-      {
-        water_level = "LOW";
-      }
-    else
-      {
-        water_level = "HIGH";
-      }
+    if (tmp == "0") {
+      water_level = "LOW";
+    } else {
+      water_level = "HIGH";
+    }
 
     print(water_level);
   } else {
@@ -228,15 +258,14 @@ void fetchWaterLevel() async {
 }
 
 void fetchRealTimeData() async {
-  final response = await http.get(Uri.parse('http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2/la'), headers: {
-    'X-M2M-Origin': 'admin:admin',
-    'Accept': 'application/json'
-  });
+  final response = await http.get(
+      Uri.parse(
+          'http://192.168.12.1:8080/~/in-cse/in-name/AE-TEST/Node-1/DataUnlimited2/la'),
+      headers: {'X-M2M-Origin': 'admin:admin', 'Accept': 'application/json'});
 
   print(response);
   print("hello");
   print(jsonDecode(response.body));
-
 
   if (response.statusCode == 200) {
     var json = jsonDecode(response.body)["m2m:cin"];
