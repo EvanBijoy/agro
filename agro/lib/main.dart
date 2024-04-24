@@ -35,13 +35,13 @@ late String currMois;
 late String currHumd;
 late String currWlvl;
 
-int y_max = 5000;
-int y_interval = 1000;
+int y_max = 100;
+int y_interval = 2;
 
 int which = 1;
 String water_level = "";
 
-int mois_thres = 3000;
+int mois_thres = 50;
 double temp_thres = 30.0;
 double humd_thres = 50.0;
 

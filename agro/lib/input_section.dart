@@ -173,11 +173,16 @@ void sendThreshold() async {
 void publishThreshold()
 {
   String topicString = "/threshold";
-  String thresholdString = mois_thres.toString() + " " + temp_thres.toString() + " " + humd_thres.toString();
+  String thresholdString = mapToRange(mois_thres).toString() + " " + temp_thres.toString() + " " + humd_thres.toString();
   final builder1 = MqttClientPayloadBuilder();
   builder1.addString(thresholdString);
   print('EXAMPLE:: <<<< PUBLISH 3 >>>>');
   client.publishMessage(topicString, MqttQos.atLeastOnce, builder1.payload!);
+}
+
+int mapToRange(int mois)
+{
+  return (4095 * (1 - mois / 100)).toInt();
 }
 
 void main() {

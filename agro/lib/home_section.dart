@@ -166,11 +166,11 @@ class _HomeSectionState extends State<HomeSection> {
           which = click;
 
           if (click == 1) {
-            y_max = 70;
+            y_max = 100;
             y_interval = 1;
           } else if (click == 2) {
-            y_max = 5000;
-            y_interval = 1000;
+            y_max = 100;
+            y_interval = 1;
           } else {
             y_max = 100;
             y_interval = 1;

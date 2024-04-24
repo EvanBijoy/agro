@@ -30,8 +30,11 @@ class Data {
       {
         return Data(index: 0, timestamp: json["ct"].toString(), motorstate: 0, humd: 0, temp: 0, mois: 0);
       }
+      double moisture=double.parse(dataArray[1]);
+      moisture = 100 * (1 - moisture / 4095);
 
-    return Data(index: index, timestamp: json["ct"].toString(), motorstate: int.parse(dataArray[0]), mois: int.parse(dataArray[1]), temp: double.parse(dataArray[2]), humd: double.parse(dataArray[3]));
+      int moisturePercentage = moisture.toInt();
+    return Data(index: index, timestamp: json["ct"].toString(), motorstate: int.parse(dataArray[0]), mois: moisturePercentage, temp: double.parse(dataArray[2]), humd: double.parse(dataArray[3]));
 
   //   return switch (json) {
   //     {
